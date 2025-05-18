@@ -21,7 +21,7 @@ const drawerItems: { label: string; icon: MaterialIconName }[] = [
 ];
 
 const CustomDrawerContent = (props: any) => {
-  const { theme, toggleTheme } = useTheme(); 
+  const { theme, toggleTheme } = useTheme();
   const navigation = useNavigation();
   const [currentTheme, setCurrentTheme] = useState("light");
 
@@ -49,7 +49,7 @@ const CustomDrawerContent = (props: any) => {
         <TouchableOpacity onPress={handleThemeToggle}>
           <MaterialCommunityIcons
             name={
-              currentTheme === "light" ?  "white-balance-sunny" : "weather-night"
+              currentTheme === "light" ? "white-balance-sunny" : "weather-night"
             }
             size={24}
             color={theme.text}
