@@ -1,14 +1,39 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { AntDesign, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { DrawerNavigationProp } from "@react-navigation/drawer";
+import * as Location from "expo-location";
 import { DrawerParamList } from "../navigation/types";
 import { useTheme } from "../context/ThemeContext";
 
 const Header = () => {
   const { theme } = useTheme();
   const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
+
+  const [city, setCity] = useState("...");
+
+  useEffect(() => {
+    const fetchLocation = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setCity("Permission denied");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const coords = {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      };
+
+      const address = await Location.reverseGeocodeAsync(coords);
+      console.log(address);
+      setCity(address[0]?.city || "Unknown city");
+    };
+
+    fetchLocation();
+  }, []);
 
   return (
     <View
@@ -17,7 +42,10 @@ const Header = () => {
     >
       {/* Left section */}
       <View className="flex-row items-center">
-        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+        <TouchableOpacity
+          onPress={() => navigation.openDrawer()}
+          className="mr-2"
+        >
           <Ionicons name="menu" size={24} color={theme.BtnPrimary} />
         </TouchableOpacity>
         <Ionicons
@@ -30,7 +58,7 @@ const Header = () => {
           className="ml-1 font-medium text-xs"
           style={{ color: theme.text }}
         >
-          G.T Road, Kolkata
+          {city}
         </Text>
         <MaterialIcons name="arrow-drop-down" size={20} color={theme.text} />
       </View>
