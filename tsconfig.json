@@ -1,6 +1,15 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "jsx": "react",
+    "moduleResolution": "nodenext", // ✅ change from "node" to "nodenext"
+    "module": "NodeNext", // ✅ required when moduleResolution is "nodenext"
     "strict": true
-  }
+  },
+  "include": [
+    "nativewind.d.ts",
+    "App.tsx",
+    "index.ts",
+    "src/**/*"
+  ]
 }
