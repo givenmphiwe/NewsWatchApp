@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import AuthNavigator from "./AuthNavigator";
-import MainNavigator from "./MainNavigator";
+import MainNavigator from "./TabNavigator";
 import SplashScreen from "../screens/splash/SplashScreen";
+import DrawerNavigator from "./DrawerNavigator";
 
 const RootNavigator = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const isLoggedIn = false;
+  const isLoggedIn = true;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -16,12 +17,14 @@ const RootNavigator = () => {
     return () => clearTimeout(timer);
   }, []);
 
+
+
   return (
     <NavigationContainer>
       {isLoading ? (
         <SplashScreen />
       ) : isLoggedIn ? (
-        <MainNavigator />
+        <DrawerNavigator />
       ) : (
         <AuthNavigator />
       )}

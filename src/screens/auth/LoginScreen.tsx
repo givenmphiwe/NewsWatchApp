@@ -29,25 +29,26 @@ const LoginScreen = () => {
   });
 
   const handleSignIn = async () => {
-    const newErrors = {
-      username: username.trim() ? "" : "Username is required",
-      email: email.trim() ? "" : "Email is required",
-      password: password.trim() ? "" : "Password is required",
-    };
+    navigation.navigate('Home')
+    // const newErrors = {
+    //   username: username.trim() ? "" : "Username is required",
+    //   email: email.trim() ? "" : "Email is required",
+    //   password: password.trim() ? "" : "Password is required",
+    // };
 
-    setErrors(newErrors);
+    // setErrors(newErrors);
 
-    const hasError = Object.values(newErrors).some((err) => err !== "");
-    if (!hasError) {
-      loaderStore.showLoader();
-      try {
-        // simulate login
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        console.log("Logged in:", { username, email, password });
-      } finally {
-        loaderStore.hideLoader();
-      }
-    }
+    // const hasError = Object.values(newErrors).some((err) => err !== "");
+    // if (!hasError) {
+    //   loaderStore.showLoader();
+    //   try {
+    //     // simulate login
+    //     await new Promise((resolve) => setTimeout(resolve, 1500));
+    //     console.log("Logged in:", { username, email, password });
+    //   } finally {
+    //     loaderStore.hideLoader();
+    //   }
+    // }
   };
 
   return (
