@@ -14,6 +14,7 @@ import SocialIcons from "../../components/SocialICon";
 import SignInButton from "../../components/SingInButton";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../../firebaseConfig";
+import { getDatabase, ref, onValue, orderByChild, query, get, equalTo } from "firebase/database";
 import { useNavigation } from "@react-navigation/native";
 import loaderStore from "../../state/LoaderStore";
 
@@ -31,38 +32,52 @@ const LoginScreen = () => {
   });
 
   const handleSignIn = async () => {
-    const newErrors = {
-      username: username.trim() ? "" : "Username is required",
-      email: email.trim() ? "" : "Email is required",
-      password: password.trim() ? "" : "Password is required",
-    };
+  const newErrors = {
+    username: username.trim() ? "" : "Username is required",
+    email: email.trim() ? "" : "Email is required",
+    password: password.trim() ? "" : "Password is required",
+  };
 
-    setErrors(newErrors);
+  setErrors(newErrors);
 
-    const hasError = Object.values(newErrors).some((err) => err !== "");
-    if (!hasError) {
-      loaderStore.showLoader();
-      try {
-        const userCredential = await signInWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-      } catch (error) {
-        console.error("Login error:", error);
-        if (typeof error === "object" && error !== null && "code" in error) {
-          const err = error as { code: string };
-          if (err.code === "auth/user-not-found") {
-            setErrors((prev) => ({ ...prev, email: "User not found" }));
-          } else if (err.code === "auth/wrong-password") {
-            setErrors((prev) => ({ ...prev, password: "Incorrect password" }));
-          }
-        }
-      } finally {
-        loaderStore.hideLoader();
+  const hasError = Object.values(newErrors).some((err) => err !== "");
+  if (hasError) return;
+
+  loaderStore.showLoader();
+
+  try {
+    // Check if username exists in Firebase Realtime Database
+    const db = getDatabase();
+    const usersRef = ref(db, "users");
+    const usernameQuery = query(usersRef, orderByChild("username"), equalTo(username));
+    const snapshot = await get(usernameQuery);
+
+    if (!snapshot.exists()) {
+      setErrors((prev) => ({ ...prev, username: "Username does not exist" }));
+      loaderStore.hideLoader();
+      return;
+    }
+
+    // If username exists, proceed to sign in with email and password
+    await signInWithEmailAndPassword(auth, email, password);
+    // You can navigate after successful login if needed
+    // navigation.navigate("Home");
+
+  } catch (error) {
+    console.error("Login error:", error);
+    if (typeof error === "object" && error !== null && "code" in error) {
+      const err = error as { code: string };
+      if (err.code === "auth/user-not-found") {
+        setErrors((prev) => ({ ...prev, email: "User not found" }));
+      } else if (err.code === "auth/wrong-password") {
+        setErrors((prev) => ({ ...prev, password: "Incorrect password" }));
       }
     }
-  };
+  } finally {
+    loaderStore.hideLoader();
+  }
+};
+
 
   return (
     <KeyboardAvoidingView
