@@ -11,7 +11,12 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useTheme } from "../../context/ThemeContext";
-import { storeProfileImage, retrieveProfileImage } from "../../utils/storage"; // adjust path as needed
+import { storeProfileImage, retrieveProfileImage } from "../../utils/storage";
+import { auth } from "../../../firebaseConfig";
+import { getDatabase, ref, onValue } from "firebase/database";
+import { onAuthStateChanged } from "firebase/auth";
+import { useNavigation } from "@react-navigation/native";
+
 
 const ProfileScreen = () => {
   const { theme } = useTheme();
@@ -19,8 +24,16 @@ const ProfileScreen = () => {
     { id: "1", label: "Media Reporter", value: "media" },
     { id: "2", label: "Visitor", value: "visitor" },
   ];
+  const navigation = useNavigation();
   const [selectedRole, setSelectedRole] = useState("media");
   const [image, setImage] = useState<string | null>(null);
+  const [userData, setUserData] = useState({
+    username: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+  });
 
   useEffect(() => {
     (async () => {
@@ -36,6 +49,27 @@ const ProfileScreen = () => {
       if (savedImage) {
         setImage(savedImage);
       }
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const uid = user.uid;
+          const db = getDatabase();
+          const userRef = ref(db, `users/${uid}`);
+          onValue(userRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+              setUserData({
+                username: data.username || "",
+                firstName: data.firstName || "",
+                lastName: data.lastName || "",
+                email: data.email || user.email || "",
+                password: "",
+              });
+              setSelectedRole(data.role || "media");
+            }
+          });
+        }
+      });
     })();
   }, []);
 
@@ -76,20 +110,44 @@ const ProfileScreen = () => {
           <Text className="text-blue-500 mt-2">Change Profile Photo</Text>
         </TouchableOpacity>
 
-        {[
-          "Username",
-          "First Name",
-          "Last Name",
-          "Email Id",
-          "Change Password",
-        ].map((placeholder, index) => (
-          <TextInput
-            key={index}
-            className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
-            placeholder={placeholder}
-            placeholderTextColor="#999"
-          />
-        ))}
+        <TextInput
+          value={userData.username}
+          onChangeText={(text) => setUserData({ ...userData, username: text })}
+          className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
+          placeholder="Username"
+          placeholderTextColor="#999"
+        />
+        <TextInput
+          value={userData.firstName}
+          onChangeText={(text) => setUserData({ ...userData, firstName: text })}
+          className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
+          placeholder="First Name"
+          placeholderTextColor="#999"
+        />
+        <TextInput
+          value={userData.lastName}
+          onChangeText={(text) => setUserData({ ...userData, lastName: text })}
+          className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
+          placeholder="Last Name"
+          placeholderTextColor="#999"
+        />
+        <TextInput
+          value={userData.email}
+          editable={false}
+          className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-500"
+          placeholder="Email Id"
+          placeholderTextColor="#999"
+        />
+        <TextInput
+          value={userData.password}
+          secureTextEntry
+          editable={false}
+           onPress={() => navigation.navigate("Register")}
+          onChangeText={(text) => setUserData({ ...userData, password: text })}
+          className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
+          placeholder="Change Password"
+          placeholderTextColor="#999"
+        />
 
         {/* Role Selection */}
         <View className="w-[90%] mt-6">

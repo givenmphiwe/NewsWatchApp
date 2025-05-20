@@ -87,6 +87,7 @@ const RegisterScreen = () => {
           username,
           email,
           mobile,
+          role: selectedRole,
           createdAt: new Date().toISOString(),
         });
 
