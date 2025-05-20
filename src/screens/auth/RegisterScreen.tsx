@@ -301,7 +301,7 @@ const RegisterScreen = () => {
           ></TouchableOpacity>
         </View>
         <View className="flex-row items-center">
-          <TouchableOpacity onPress={() => navigation.navigate("")}>
+          <TouchableOpacity onPress={() => navigation.navigate("Terms")}>
             <Text className="font-bold" style={{ color: theme.text }}>
               Terms and Condition
             </Text>
