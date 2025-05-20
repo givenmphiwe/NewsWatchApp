@@ -14,6 +14,8 @@ import LogoHeader from "../../components/LogoHeader";
 import SignInButton from "../../components/SingInButton";
 import loaderStore from "../../state/LoaderStore";
 import otpStore from "../../state/OtpStore";
+import { updatePassword } from "firebase/auth";
+import { auth } from "../../../firebaseConfig"; 
 
 const ResetPasswordScreen = () => {
   const { theme } = useTheme();
@@ -42,22 +44,6 @@ const ResetPasswordScreen = () => {
         : "Please confirm your password",
     };
 
-    useEffect(() => {
-      const keyboardDidShowListener = Keyboard.addListener(
-        "keyboardDidShow",
-        () => setKeyboardVisible(true)
-      );
-      const keyboardDidHideListener = Keyboard.addListener(
-        "keyboardDidHide",
-        () => setKeyboardVisible(false)
-      );
-
-      return () => {
-        keyboardDidShowListener.remove();
-        keyboardDidHideListener.remove();
-      };
-    }, []);
-
     setErrors(newErrors);
 
     const hasError = Object.values(newErrors).some((err) => err !== "");
@@ -78,6 +64,22 @@ const ResetPasswordScreen = () => {
       }
     }
   };
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => setKeyboardVisible(false)
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
 
   return (
     <KeyboardAvoidingView

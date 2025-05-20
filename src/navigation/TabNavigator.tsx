@@ -17,8 +17,8 @@ const CustomTabBar = ({ state, navigation }: any) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const currentRoute = state.routes[state.index];
-  if (currentRoute.name === "AddPost") {
-    return null; // 👈 Hide tab bar when AddPost is focused
+  if (currentRoute.name === "AddPost" || currentRoute.name === "Profile") {
+    return null; 
   }
 
   return (
@@ -144,9 +144,8 @@ const TabNavigator = () => {
           headerStyle: {
             backgroundColor: theme.background,
           },
-           headerTitleAlign: "center",
+          headerTitleAlign: "center",
           title: "My Profile",
-         
           tabBarStyle: { display: "none" },
           headerLeft: () => (
             <TouchableOpacity

@@ -40,7 +40,7 @@ const HomeScreen = () => {
 
   useEffect(() => {
     loadNews();
-  }, []);
+  }, [uiStore.categories]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -82,11 +82,13 @@ const HomeScreen = () => {
                 elevation: 4,
               }}
             >
-              <Image
-                source={{ uri: article.urlToImage }}
-                className="w-full h-52"
-                resizeMode="cover"
-              />
+              {article.urlToImage ? (
+                <Image
+                  source={{ uri: article.urlToImage }}
+                  className="w-full h-52"
+                  resizeMode="cover"
+                />
+              ) : null}
               <View className="p-4">
                 <Text
                   className="text-lg font-bold mb-1"

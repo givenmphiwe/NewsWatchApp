@@ -13,10 +13,11 @@ import * as ImagePicker from "expo-image-picker";
 import { useTheme } from "../../context/ThemeContext";
 import { storeProfileImage, retrieveProfileImage } from "../../utils/storage";
 import { auth } from "../../../firebaseConfig";
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getDatabase, ref, onValue, update } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigation } from "@react-navigation/native";
-
+import SignInButton from "../../components/SingInButton";
+import loaderStore from "../../state/LoaderStore";
 
 const ProfileScreen = () => {
   const { theme } = useTheme();
@@ -25,6 +26,7 @@ const ProfileScreen = () => {
     { id: "2", label: "Visitor", value: "visitor" },
   ];
   const navigation = useNavigation();
+
   const [selectedRole, setSelectedRole] = useState("media");
   const [image, setImage] = useState<string | null>(null);
   const [userData, setUserData] = useState({
@@ -34,6 +36,16 @@ const ProfileScreen = () => {
     email: "",
     password: "",
   });
+
+
+  const [originalData, setOriginalData] = useState({
+    username: "",
+    firstName: "",
+    lastName: "",
+    role: "media",
+  });
+
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -58,20 +70,54 @@ const ProfileScreen = () => {
           onValue(userRef, (snapshot) => {
             const data = snapshot.val();
             if (data) {
-              setUserData({
+              const loadedData = {
                 username: data.username || "",
                 firstName: data.firstName || "",
                 lastName: data.lastName || "",
                 email: data.email || user.email || "",
                 password: "",
-              });
+              };
+
+              setUserData(loadedData);
               setSelectedRole(data.role || "media");
+
+              setOriginalData({
+                username: loadedData.username,
+                firstName: loadedData.firstName,
+                lastName: loadedData.lastName,
+                role: data.role || "media",
+              });
+              setHasChanges(false);
             }
           });
         }
       });
     })();
   }, []);
+
+  const checkChanges = (
+    currentData: typeof userData,
+    currentRole: string,
+    original: typeof originalData
+  ) => {
+    return (
+      currentData.username !== original.username ||
+      currentData.firstName !== original.firstName ||
+      currentData.lastName !== original.lastName ||
+      currentRole !== original.role
+    );
+  };
+
+  const updateUserData = (field: keyof typeof userData, value: string) => {
+    const newUserData = { ...userData, [field]: value };
+    setUserData(newUserData);
+    setHasChanges(checkChanges(newUserData, selectedRole, originalData));
+  };
+
+  const updateRole = (roleValue: string) => {
+    setSelectedRole(roleValue);
+    setHasChanges(checkChanges(userData, roleValue, originalData));
+  };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -85,6 +131,36 @@ const ProfileScreen = () => {
       const uri = result.assets[0].uri;
       setImage(uri);
       await storeProfileImage(uri);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    const user = auth.currentUser;
+    loaderStore.showLoader();
+    if (user) {
+      const db = getDatabase();
+      const userRef = ref(db, `users/${user.uid}`);
+      update(userRef, {
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: selectedRole,
+      })
+        .then(() => {
+          loaderStore.hideLoader();
+          setOriginalData({
+            username: userData.username,
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            role: selectedRole,
+          });
+          setHasChanges(false);
+        })
+        .catch((error) => {
+          console.error("Error updating profile:", error);
+          alert("Failed to update profile.");
+          loaderStore.hideLoader();
+        });
     }
   };
 
@@ -112,21 +188,21 @@ const ProfileScreen = () => {
 
         <TextInput
           value={userData.username}
-          onChangeText={(text) => setUserData({ ...userData, username: text })}
+          onChangeText={(text) => updateUserData("username", text)}
           className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
           placeholder="Username"
           placeholderTextColor="#999"
         />
         <TextInput
           value={userData.firstName}
-          onChangeText={(text) => setUserData({ ...userData, firstName: text })}
+          onChangeText={(text) => updateUserData("firstName", text)}
           className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
           placeholder="First Name"
           placeholderTextColor="#999"
         />
         <TextInput
           value={userData.lastName}
-          onChangeText={(text) => setUserData({ ...userData, lastName: text })}
+          onChangeText={(text) => updateUserData("lastName", text)}
           className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
           placeholder="Last Name"
           placeholderTextColor="#999"
@@ -142,8 +218,8 @@ const ProfileScreen = () => {
           value={userData.password}
           secureTextEntry
           editable={false}
-           onPress={() => navigation.navigate("Register")}
-          onChangeText={(text) => setUserData({ ...userData, password: text })}
+          onPress={() => navigation.navigate("Register")}
+          onChangeText={(text) => updateUserData("password", text)}
           className="w-[90%] h-12 bg-gray-100 rounded-full px-4 mt-4 text-gray-700"
           placeholder="Change Password"
           placeholderTextColor="#999"
@@ -152,12 +228,12 @@ const ProfileScreen = () => {
         {/* Role Selection */}
         <View className="w-[90%] mt-6">
           <Text className="text-lg font-medium mb-2">I am a</Text>
-          <View className="flex-row gap-8">
+          <View className="flex-row gap-8 mb-6">
             {roles.map((role) => (
               <TouchableOpacity
                 key={role.id}
                 className="flex-row items-center mr-6"
-                onPress={() => setSelectedRole(role.value)}
+                onPress={() => updateRole(role.value)}
               >
                 <View
                   className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
@@ -182,6 +258,10 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             ))}
           </View>
+
+          {hasChanges ? (
+            <SignInButton onPress={handleSaveProfile} title="Update" />
+          ) : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

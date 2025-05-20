@@ -26,7 +26,7 @@ const ForgotPasswordScreen = () => {
 
   const handleSendOtp = async () => {
     console.log("Sending OTP to:", email);
-    loaderStore.showLoader(); // Show loader before API call
+    loaderStore.showLoader();
     try {
       const result = await sendOtp(email);
       setStatus(`OTP sent successfully: ${result.otp}`);

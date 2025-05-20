@@ -91,7 +91,6 @@ const RegisterScreen = () => {
           createdAt: new Date().toISOString(),
         });
 
-        navigation.navigate("Home");
       } catch (error) {
         console.error("Registration error:", error);
         if (typeof error === "object" && error !== null && "code" in error) {
