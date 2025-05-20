@@ -107,7 +107,7 @@ const ArticleScreen = observer(() => {
           </View>
 
           <Text className="text-sm" style={{ color: theme.secondary }}>
-            {article.content || article.description}
+            {article.content}
           </Text>
         </View>
       </ScrollView>
