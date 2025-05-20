@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { FontAwesome5 } from "@expo/vector-icons";
+import { Entypo, FontAwesome5 } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeScreen from "../screens/home/HomeScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
@@ -10,6 +10,7 @@ import { useTheme } from "../context/ThemeContext";
 import { NavigationHelpersContext } from "@react-navigation/native";
 import { TabParamList } from "./types";
 import PostScreen from "../screens/post/PostArticleScreen";
+import ArticleScreen from "../screens/home/ArticleScreen";
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -17,8 +18,12 @@ const CustomTabBar = ({ state, navigation }: any) => {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const currentRoute = state.routes[state.index];
-  if (currentRoute.name === "AddPost" || currentRoute.name === "Profile") {
-    return null; 
+  if (
+    currentRoute.name === "AddPost" ||
+    currentRoute.name === "Profile" ||
+    currentRoute.name === "Article"
+  ) {
+    return null;
   }
 
   return (
@@ -30,6 +35,7 @@ const CustomTabBar = ({ state, navigation }: any) => {
       }}
     >
       {state.routes.map((route: any, index: number) => {
+        if (route.name === "Article") return null;
         const isFocused = state.index === index;
         const onPress = () => navigation.navigate(route.name);
         const color = isFocused ? "#3B82F6" : "#A1A1AA";
@@ -47,7 +53,7 @@ const CustomTabBar = ({ state, navigation }: any) => {
             case "Profile":
               return "user-alt";
             default:
-              return "ellipse-outline";
+              return "user-alt";
           }
         };
 
@@ -121,6 +127,7 @@ const TabNavigator = () => {
           headerStyle: {
             backgroundColor: theme.background,
           },
+
           title: "",
           tabBarStyle: { display: "none" },
           headerLeft: () => (
@@ -143,6 +150,11 @@ const TabNavigator = () => {
           headerShown: true,
           headerStyle: {
             backgroundColor: theme.background,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 10,
           },
           headerTitleAlign: "center",
           title: "My Profile",
@@ -156,6 +168,14 @@ const TabNavigator = () => {
             </TouchableOpacity>
           ),
         })}
+      />
+      <Tab.Screen
+        name="Article"
+        component={ArticleScreen}
+        options={{
+          tabBarButton: () => null,
+          tabBarVisible: false,
+        }}
       />
     </Tab.Navigator>
   );

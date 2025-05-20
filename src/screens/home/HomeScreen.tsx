@@ -6,15 +6,19 @@ import {
   Text,
   View,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import Header from "../../components/Header";
 import { useTheme } from "../../context/ThemeContext";
 import { fetchNews } from "../../api/NewsApi";
 import rootStore from "../../state/RootStore";
+import { useNavigation } from "@react-navigation/native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const HomeScreen = () => {
   const { theme } = useTheme();
   const { uiStore } = rootStore;
+  const navigation = useNavigation();
   const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,6 +51,11 @@ const HomeScreen = () => {
     await loadNews();
   };
 
+  const handleArticlePress = (article: any) => {
+    uiStore.setSelectedArticle(article);
+    navigation.navigate("Article");
+  };
+
   return (
     <View className="flex-1" style={{ backgroundColor: theme.background }}>
       <Header onTabSelect={handleTabSelect} />
@@ -67,7 +76,8 @@ const HomeScreen = () => {
           }
         >
           {news.map((article, index) => (
-            <View
+            <TouchableOpacity
+              onPress={() => handleArticlePress(article)}
               key={index}
               className="rounded-xl overflow-hidden mb-4 shadow-xl"
               style={{
@@ -92,7 +102,7 @@ const HomeScreen = () => {
               <View className="p-4">
                 <Text
                   className="text-lg font-bold mb-1"
-                  style={{ color: theme.text }}
+                  style={{ color: theme.text, lineHeight: 23 }}
                 >
                   {article.title}
                 </Text>
@@ -102,14 +112,11 @@ const HomeScreen = () => {
                     {new Date(article.publishedAt).toLocaleDateString()}
                   </Text>
                 </View>
-                <Text
-                  className="text-sm mb-4"
-                  style={{ color: theme.secondary }}
-                >
+                <Text className=" mb-4" style={{ color: theme.secondary }}>
                   {article.description}
                 </Text>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       )}

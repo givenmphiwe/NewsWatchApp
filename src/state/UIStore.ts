@@ -4,7 +4,7 @@ class UIStore {
   otp: string = "";
   isLoading: boolean = false;
   categories: string = "Popular";
-  newsCache: Record<string, any[]> = {};
+  selectedArticle: any = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -27,13 +27,13 @@ class UIStore {
   clearCategory() {
     this.categories = "";
   }
-  //caching the news
-  setNewsForCategory(category: string, articles: any[]) {
-    this.newsCache[category] = articles;
+  //Selected Article
+  setSelectedArticle(article: any) {
+    this.selectedArticle = article;
   }
 
-  getNewsForCategory(category: string): any[] {
-    return this.newsCache[category] || [];
+  clearSelectedArticle() {
+    this.selectedArticle = null;
   }
 
   // Loader methods
