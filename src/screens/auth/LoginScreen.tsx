@@ -12,8 +12,10 @@ import { useTheme } from "../../context/ThemeContext";
 import LogoHeader from "../../components/LogoHeader";
 import SocialIcons from "../../components/SocialICon";
 import SignInButton from "../../components/SingInButton";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../../firebaseConfig";
+import { useNavigation } from "@react-navigation/native";
 import loaderStore from "../../state/LoaderStore";
-import { useNavigation } from '@react-navigation/native';
 
 const LoginScreen = () => {
   const { theme } = useTheme();
@@ -29,26 +31,37 @@ const LoginScreen = () => {
   });
 
   const handleSignIn = async () => {
-    navigation.navigate('Home')
-    // const newErrors = {
-    //   username: username.trim() ? "" : "Username is required",
-    //   email: email.trim() ? "" : "Email is required",
-    //   password: password.trim() ? "" : "Password is required",
-    // };
+    const newErrors = {
+      username: username.trim() ? "" : "Username is required",
+      email: email.trim() ? "" : "Email is required",
+      password: password.trim() ? "" : "Password is required",
+    };
 
-    // setErrors(newErrors);
+    setErrors(newErrors);
 
-    // const hasError = Object.values(newErrors).some((err) => err !== "");
-    // if (!hasError) {
-    //   loaderStore.showLoader();
-    //   try {
-    //     // simulate login
-    //     await new Promise((resolve) => setTimeout(resolve, 1500));
-    //     console.log("Logged in:", { username, email, password });
-    //   } finally {
-    //     loaderStore.hideLoader();
-    //   }
-    // }
+    const hasError = Object.values(newErrors).some((err) => err !== "");
+    if (!hasError) {
+      loaderStore.showLoader();
+      try {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+      } catch (error) {
+        console.error("Login error:", error);
+        if (typeof error === "object" && error !== null && "code" in error) {
+          const err = error as { code: string };
+          if (err.code === "auth/user-not-found") {
+            setErrors((prev) => ({ ...prev, email: "User not found" }));
+          } else if (err.code === "auth/wrong-password") {
+            setErrors((prev) => ({ ...prev, password: "Incorrect password" }));
+          }
+        }
+      } finally {
+        loaderStore.hideLoader();
+      }
+    }
   };
 
   return (
@@ -149,7 +162,9 @@ const LoginScreen = () => {
             ) : null}
           </View>
 
-          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
             <Text className="text-right mb-8" style={{ color: theme.text }}>
               Forgot password?
             </Text>
@@ -177,8 +192,10 @@ const LoginScreen = () => {
 
         <View className="flex-row items-center">
           <Text style={{ color: theme.text }}>Don't have an account? </Text>
-          <TouchableOpacity>
-            <Text style={{ color: theme.text }}>Register</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+            <Text className="font-bold" style={{ color: theme.text }}>
+              Register
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

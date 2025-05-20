@@ -3,7 +3,7 @@ import { makeAutoObservable } from "mobx";
 class UIStore {
   otp: string = "";
   isLoading: boolean = false;
-  isDrawerOpen: boolean = false;
+  categories: string = "Popular";
 
   constructor() {
     makeAutoObservable(this);
@@ -18,6 +18,15 @@ class UIStore {
     this.otp = "";
   }
 
+  // Category methods
+  setCategory(value: string) {
+    this.categories = value;
+  }
+
+  clearCategory() {
+    this.categories = "";
+  }
+
   // Loader methods
   showLoader() {
     this.isLoading = true;
@@ -25,15 +34,6 @@ class UIStore {
   hideLoader() {
     this.isLoading = false;
   }
-
-  // Drawer methods
-  openDrawer() {
-    this.isDrawerOpen = true;
-  }
-  closeDrawer() {
-    this.isDrawerOpen = false;
-  }
-  
 }
 
 export default UIStore;

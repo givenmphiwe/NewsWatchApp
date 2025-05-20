@@ -5,6 +5,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../../context/ThemeContext";
 import { storeTheme, retrieveTheme } from "../../utils/storage";
+import { signOut } from "firebase/auth";
+import { auth } from "../../../firebaseConfig";
 
 type MaterialIconName = keyof typeof MaterialCommunityIcons.glyphMap;
 
@@ -38,6 +40,14 @@ const CustomDrawerContent = (props: any) => {
     setCurrentTheme(newTheme);
     await storeTheme(newTheme);
     toggleTheme();
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   return (
@@ -80,9 +90,7 @@ const CustomDrawerContent = (props: any) => {
         </View>
       ))}
       <TouchableOpacity
-        onPress={() => {
-          /* handle logout */
-        }}
+        onPress={handleLogout}
       >
         <View className="flex-row items-center p-4">
           <MaterialCommunityIcons

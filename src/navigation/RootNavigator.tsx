@@ -4,26 +4,27 @@ import AuthNavigator from "./AuthNavigator";
 import MainNavigator from "./TabNavigator";
 import SplashScreen from "../screens/splash/SplashScreen";
 import DrawerNavigator from "./DrawerNavigator";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "../../firebaseConfig";
 
 const RootNavigator = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const isLoggedIn = true;
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      setUser(authUser);
       setIsLoading(false);
-    }, 2000);
+    });
 
-    return () => clearTimeout(timer);
+    return unsubscribe;
   }, []);
-
-
 
   return (
     <NavigationContainer>
       {isLoading ? (
         <SplashScreen />
-      ) : isLoggedIn ? (
+      ) : user ? (
         <DrawerNavigator />
       ) : (
         <AuthNavigator />

@@ -1,4 +1,3 @@
-// api.ts
 import axios from 'axios';
 
 const NEWS_API_KEY = '884cf3746c204fa09a496745989490a8';
@@ -14,8 +13,8 @@ export const fetchNews = async ({
   query = 'apple',
   from,
   to,
-  pageSize = 20,
-  sortBy = 'publishedAt', // Get latest first
+  pageSize = 10,
+  sortBy = 'publishedAt', 
 }: {
   query?: string;
   from?: string;
@@ -31,6 +30,7 @@ export const fetchNews = async ({
         ...(to && { to }),
         sortBy,
         pageSize,
+        language: 'en',
         apiKey: NEWS_API_KEY,
       },
     });
