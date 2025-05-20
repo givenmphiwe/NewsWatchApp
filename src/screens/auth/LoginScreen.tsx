@@ -46,7 +46,6 @@ const LoginScreen = () => {
   loaderStore.showLoader();
 
   try {
-    // Check if username exists in Firebase Realtime Database
     const db = getDatabase();
     const usersRef = ref(db, "users");
     const usernameQuery = query(usersRef, orderByChild("username"), equalTo(username));
@@ -58,10 +57,7 @@ const LoginScreen = () => {
       return;
     }
 
-    // If username exists, proceed to sign in with email and password
     await signInWithEmailAndPassword(auth, email, password);
-    // You can navigate after successful login if needed
-    // navigation.navigate("Home");
 
   } catch (error) {
     console.error("Login error:", error);
