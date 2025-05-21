@@ -85,13 +85,13 @@ const CategoryScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                    tintColor="#007AFF"
-                    colors={["#007AFF"]}
-                  />
-                }
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#007AFF"
+            colors={["#007AFF"]}
+          />
+        }
       >
         {/* Popular Tags */}
         <View className="mb-6">
@@ -177,7 +177,7 @@ const CategoryScreen = () => {
         </View>
 
         {/* Recommendation Topics */}
-        <View className="h-px bg-gray-300 mb-4" />
+        <View className="h-px bg-gray-300 mb-1" />
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-lg font-semibold">Recomendation Topic</Text>
