@@ -13,7 +13,6 @@ import { useTheme } from "../../context/ThemeContext";
 import { fetchNews } from "../../api/NewsApi";
 import rootStore from "../../state/RootStore";
 import { useNavigation } from "@react-navigation/native";
-import { MaterialIcons } from "@expo/vector-icons";
 
 const HomeScreen = () => {
   const { theme } = useTheme();

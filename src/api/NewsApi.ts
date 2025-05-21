@@ -13,7 +13,7 @@ export const fetchNews = async ({
   query = 'apple',
   from,
   to,
-  pageSize = 10,
+  pageSize = 20,
   sortBy = 'publishedAt', 
 }: {
   query?: string;
