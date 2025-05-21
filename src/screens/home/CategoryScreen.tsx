@@ -69,7 +69,6 @@ const CategoryScreen = () => {
 
   return (
     <View className="flex-1 bg-white px-4 py-3">
-      {/* Search - fixed header */}
       <View className="mb-4 mt-5 flex-row items-center bg-gray-100 rounded-xl px-3">
         <TextInput
           placeholder="Search"
@@ -82,7 +81,6 @@ const CategoryScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Scrollable content */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
