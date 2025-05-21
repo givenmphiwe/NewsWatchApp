@@ -26,6 +26,10 @@ const CategoryScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("all");
+  const [showAllTags, setShowAllTags] = useState(false);
+  const [showAllNews, setShowAllNews] = useState(false);
+  const [showAllRecommendations, setShowAllRecommendations] = useState(false);
+  const [imageErrorMap, setImageErrorMap] = useState({});
 
   const loadNews = async (query = searchQuery) => {
     try {
@@ -97,12 +101,16 @@ const CategoryScreen = () => {
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-lg font-semibold">Popular Tags</Text>
-            <Text className="text-blue-500 font-bold">View All</Text>
+            <TouchableOpacity onPress={() => setShowAllTags(!showAllTags)}>
+              <Text className="text-blue-500 font-bold">
+                {showAllTags ? "View Less" : "View All"}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
             <View className="flex-row flex-wrap">
-              {tags.map((tag, index) => (
+              {(showAllTags ? tags : tags.slice(0, 6)).map((tag, index) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => {
@@ -132,13 +140,18 @@ const CategoryScreen = () => {
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-lg font-semibold">Latest News</Text>
-            <Text className="text-blue-500 font-bold">View All</Text>
+            <TouchableOpacity onPress={() => setShowAllNews(!showAllNews)}>
+              <Text className="text-blue-500 font-bold">
+                {showAllNews ? "View Less" : "View All"}
+              </Text>
+            </TouchableOpacity>
           </View>
+
           {loading ? (
             <ActivityIndicator />
           ) : (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {news.slice(0, 5).map((item, index) => (
+              {(showAllNews ? news : news.slice(0, 5)).map((item, index) => (
                 <TouchableOpacity
                   key={index}
                   className="mr-4 w-64"
@@ -155,7 +168,7 @@ const CategoryScreen = () => {
                     style={{ color: theme.text, lineHeight: 15 }}
                     numberOfLines={2}
                   >
-                    {item.title}{" "}
+                    {item.title}
                   </Text>
                   <View className="flex-row items-center space-x-1">
                     <Text
@@ -166,7 +179,7 @@ const CategoryScreen = () => {
                     >
                       {item.source?.name || "Source"}
                     </Text>
-                    <Text className="text-gray-400 text-xs ">
+                    <Text className="text-gray-400 text-xs">
                       {formatDate(item.publishedAt)}
                     </Text>
                   </View>
@@ -180,42 +193,51 @@ const CategoryScreen = () => {
         <View className="h-px bg-gray-300 mb-1" />
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-2">
-            <Text className="text-lg font-semibold">Recomendation Topic</Text>
-            <Text className="text-blue-500 font-bold">View All</Text>
-          </View>
-          {news.slice(5, 10).map((item, index) => (
+            <Text className="text-lg font-semibold">Recommendation Topic</Text>
             <TouchableOpacity
-              onPress={() => handleArticlePress(item)}
-              key={index}
-              className="flex-row mb-4 items-center"
+              onPress={() => setShowAllRecommendations(!showAllRecommendations)}
             >
-              <View className="flex-1">
-                <Text
-                  className="font-medium"
-                  style={{ color: theme.text, lineHeight: 15 }}
-                  numberOfLines={2}
-                >
-                  {item.title}
-                </Text>
-
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-blue-500 text-xs font-light">
-                    {item.source?.name || "Source"}
-                  </Text>
-
-                  <Text className="text-gray-400 text-xs font-light mr-6">
-                    {formatDate(item.publishedAt)}
-                  </Text>
-                </View>
-              </View>
-              <Image
-                source={{
-                  uri: item.urlToImage || "https://via.placeholder.com/100",
-                }}
-                className="w-20 h-20 rounded-lg mr-3"
-              />
+              <Text className="text-blue-500 font-bold">
+                {showAllRecommendations ? "View Less" : "View All"}
+              </Text>
             </TouchableOpacity>
-          ))}
+          </View>
+
+          {(showAllRecommendations ? news.slice(5) : news.slice(5, 10)).map(
+            (item, index) => (
+              <TouchableOpacity
+                onPress={() => handleArticlePress(item)}
+                key={index}
+                className="flex-row mb-4 items-center"
+              >
+                <View className="flex-1">
+                  <Text
+                    className="font-medium"
+                    style={{ color: theme.text, lineHeight: 15 }}
+                    numberOfLines={2}
+                  >
+                    {item.title}
+                  </Text>
+
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-blue-500 text-xs font-light">
+                      {item.source?.name || "Source"}
+                    </Text>
+                    <Text className="text-gray-400 text-xs font-light mr-6">
+                      {formatDate(item.publishedAt)}
+                    </Text>
+                  </View>
+                </View>
+
+                <Image
+                  source={{
+                    uri: item.urlToImage || "https://via.placeholder.com/100",
+                  }}
+                  className="w-20 h-20 rounded-lg mr-3"
+                />
+              </TouchableOpacity>
+            )
+          )}
         </View>
       </ScrollView>
     </View>
