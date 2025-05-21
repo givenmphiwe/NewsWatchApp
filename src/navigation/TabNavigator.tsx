@@ -5,12 +5,13 @@ import { Entypo, FontAwesome5 } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeScreen from "../screens/home/HomeScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
-import SettingsScreen from "../screens/settings/SettingsScreen";
+import SettingsScreen from "../screens/Polls/PollScreen";
 import { useTheme } from "../context/ThemeContext";
 import { NavigationHelpersContext } from "@react-navigation/native";
 import { TabParamList } from "./types";
 import PostScreen from "../screens/post/PostArticleScreen";
 import ArticleScreen from "../screens/home/ArticleScreen";
+import PollScreen from "../screens/Polls/PollScreen";
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -140,7 +141,31 @@ const TabNavigator = () => {
           ),
         })}
       />
-      <Tab.Screen name="Poll" component={SettingsScreen} />
+      <Tab.Screen name="Poll" component={PollScreen} options={({
+          navigation,
+        }: NavigationHelpersContext<TabParamList, "Profile">) => ({
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: theme.background,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 10,
+          },
+          headerTitleAlign: "center",
+          title: "Create Poll",
+          tabBarStyle: { display: "none" },
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              className="ml-5"
+            >
+              <FontAwesome5 name="arrow-left" size={22} color="#007AFF" />
+            </TouchableOpacity>
+          ),
+        })}
+      />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}

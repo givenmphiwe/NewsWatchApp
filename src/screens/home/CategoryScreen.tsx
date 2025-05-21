@@ -97,7 +97,6 @@ const CategoryScreen = () => {
           />
         }
       >
-        {/* Popular Tags */}
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-lg font-semibold">Popular Tags</Text>
@@ -135,7 +134,6 @@ const CategoryScreen = () => {
           </ScrollView>
         </View>
 
-        {/* Latest News */}
         <View className="h-px bg-gray-300 mb-1" />
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-2">
@@ -189,7 +187,6 @@ const CategoryScreen = () => {
           )}
         </View>
 
-        {/* Recommendation Topics */}
         <View className="h-px bg-gray-300 mb-1" />
         <View className="mb-6">
           <View className="flex-row justify-between items-center mb-2">
