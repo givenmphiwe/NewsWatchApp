@@ -12,6 +12,7 @@ import { TabParamList } from "./types";
 import PostScreen from "../screens/post/PostArticleScreen";
 import ArticleScreen from "../screens/home/ArticleScreen";
 import PollScreen from "../screens/Polls/PollScreen";
+import AdvertScreen from "../screens/ads/AdvertScreen";
 
 const Tab = createBottomTabNavigator<TabParamList>();
 
@@ -22,7 +23,7 @@ const CustomTabBar = ({ state, navigation }: any) => {
   if (
     currentRoute.name === "AddPost" ||
     currentRoute.name === "Profile" ||
-    currentRoute.name === "Article"
+    currentRoute.name === "Article" 
   ) {
     return null;
   }
@@ -117,7 +118,31 @@ const TabNavigator = () => {
       tabBar={(props: any) => <CustomTabBar {...props} />}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Ads" component={SettingsScreen} />
+      <Tab.Screen name="Ads" component={AdvertScreen}options={({
+          navigation,
+        }: NavigationHelpersContext<TabParamList, "Profile">) => ({
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: theme.background,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 6,
+            elevation: 10,
+          },
+          headerTitleAlign: "center",
+          title: "Ads",
+          tabBarStyle: { display: "none" },
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              className="ml-5"
+            >
+              <FontAwesome5 name="arrow-left" size={22} color="#007AFF" />
+            </TouchableOpacity>
+          ),
+        })}
+      />
       <Tab.Screen
         name="AddPost"
         component={PostScreen}
