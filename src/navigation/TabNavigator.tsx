@@ -1,11 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Entypo, FontAwesome5 } from "@expo/vector-icons";
+import { FontAwesome5 } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import HomeScreen from "../screens/home/HomeScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
-import SettingsScreen from "../screens/Polls/PollScreen";
 import { useTheme } from "../context/ThemeContext";
 import { NavigationHelpersContext } from "@react-navigation/native";
 import { TabParamList } from "./types";
