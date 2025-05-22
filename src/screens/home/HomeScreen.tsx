@@ -7,6 +7,7 @@ import {
   View,
   RefreshControl,
   TouchableOpacity,
+  DimensionValue,
 } from "react-native";
 import Header from "../../components/Header";
 import { useTheme } from "../../context/ThemeContext";
@@ -25,6 +26,8 @@ import {
 } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import CategoryScreen from "./CategoryScreen";
+import { Ionicons } from "@expo/vector-icons";
+import { retrievePollVoted, storePollVoted } from "../../utils/storage";
 
 const HomeScreen = () => {
   const { theme } = useTheme();
@@ -37,6 +40,10 @@ const HomeScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [poll, setPoll] = useState<any>(null);
   const [pollId, setPollId] = useState<string | null>(null);
+  const [showProgress, setShowProgress] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [pollInsertIndex, setPollInsertIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const db = getDatabase();
@@ -52,6 +59,16 @@ const HomeScreen = () => {
         const key = Object.keys(data)[0];
         setPollId(key);
         setPoll(data[key]);
+
+        const randomIndex =
+          Math.floor(Math.random() * (news.length > 1 ? news.length - 1 : 1)) +
+          1;
+        setPollInsertIndex(randomIndex);
+
+        (async () => {
+          const voted = await retrievePollVoted(key);
+          setHasVoted(voted);
+        })();
       }
       setLoading(false);
     });
@@ -59,16 +76,23 @@ const HomeScreen = () => {
     return () => unsubscribe();
   }, []);
 
-  const handleVote = (optionKey: string) => {
+  const handleVote = async (optionKey: string) => {
     if (!poll || !pollId) return;
 
     const db = getDatabase();
     const optionPath = `polls/${pollId}/options/${optionKey}`;
     const currentVotes = poll.options[optionKey] || 0;
 
-    update(ref(db), {
-      [optionPath]: currentVotes + 1,
-    });
+    try {
+      await update(ref(db), {
+        [optionPath]: currentVotes + 1,
+      });
+
+      await storePollVoted(pollId);
+      setHasVoted(true);
+    } catch (error) {
+      console.error("Failed to update vote:", error);
+    }
   };
 
   const loadNews = async () => {
@@ -76,10 +100,13 @@ const HomeScreen = () => {
       const articles = await fetchNews({ query: `${uiStore.categories}` });
       setNews(articles);
       setError(null);
+
+      const randomIndex = Math.floor(Math.random() * (articles.length - 1)) + 1;
+      setPollInsertIndex(randomIndex);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
-      setLoading(false);
+     
       setRefreshing(false);
     }
   };
@@ -93,22 +120,35 @@ const HomeScreen = () => {
     loadNews();
   }, [uiStore.categories]);
 
-  useEffect(() => {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const uid = user.uid;
-        const db = getDatabase();
-        const userRef = ref(db, `users/${uid}`);
-        onValue(userRef, (snapshot) => {
-          const data = snapshot.val();
-          if (data) {
-            setRole(data.role || "media");
-            // other setUserData, etc.
-          }
-        });
-      }
-    });
-  }, [uiStore.categories]);
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      const uid = user.uid;
+      const db = getDatabase();
+      const userRef = ref(db, `users/${uid}`);
+
+      onValue(userRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          setRole(data.role || "media");
+          // Now that role is set, loading can be released
+          setLoading(false);
+        } else {
+          // Optional: handle the case where user data is missing
+          setError("User data not found");
+          setLoading(false);
+        }
+      });
+    } else {
+      // Handle not authenticated
+      setError("User not authenticated");
+      setLoading(false);
+    }
+  });
+
+  return () => unsubscribe();
+}, [uiStore.categories]);
+
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -183,7 +223,7 @@ const HomeScreen = () => {
               </TouchableOpacity>
 
               {/* Insert poll after the 2nd article (index === 1) */}
-              {index === 1 && poll && (
+              {index === pollInsertIndex && poll && (
                 <View
                   className="p-4 mb-4 rounded-lg bg-white shadow-md"
                   style={{ backgroundColor: theme.background }}
@@ -194,41 +234,74 @@ const HomeScreen = () => {
                   >
                     {poll.question}
                   </Text>
-                  {poll && (
-                    <View className="rounded-xl overflow-hidden mb-4 shadow-xl">
-                      {(() => {
-                        const options = poll?.options as Record<string, number>;
-                        const totalVotes =
-                          Object.values(options).reduce(
-                            (sum, v) => sum + v,
-                            0
-                          ) || 1;
 
-                        return Object.entries(options).map(([key, value]) => {
-                          const percentage = (value / totalVotes) * 100;
+                  {(() => {
+                    const options = poll?.options as Record<string, number>;
+                    const totalVotes =
+                      Object.values(options).reduce((sum, v) => sum + v, 0) ||
+                      1;
+
+                    return (
+                      <>
+                        {Object.entries(options).map(([key, value]) => {
+                          const percentage = (
+                            (value / totalVotes) *
+                            100
+                          ).toFixed(1);
+                          const selected = selectedOption === key;
 
                           return (
-                            <TouchableOpacity
-                              key={key}
-                              onPress={() => handleVote(key)}
-                              className="mb-4"
-                            >
-                              <Text className="mb-1 text-black dark:text-white">
-                                {key} ({value} votes)
-                              </Text>
-
-                              <View className="h-4 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden">
-                                <View
-                                  className="h-full bg-blue-500"
-                                  style={{ width: `${percentage}%` }}
+                            <View key={key} className="mb-4">
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setSelectedOption(key);
+                                  handleVote(key);
+                                }}
+                                className="flex-row items-center mb-1"
+                              >
+                                <Ionicons
+                                  name={
+                                    selected
+                                      ? "radio-button-on"
+                                      : "radio-button-off"
+                                  }
+                                  size={20}
+                                  color={selected ? "#007bff" : "#999"}
+                                  className="mr-2"
                                 />
-                              </View>
-                            </TouchableOpacity>
+                                <Text className="text-black dark:text-white flex-1">
+                                  {key}
+                                </Text>
+                              </TouchableOpacity>
+
+                              {showProgress && (
+                                <View className="h-4 bg-gray-300 dark:bg-gray-600 rounded-full overflow-hidden relative">
+                                  <View
+                                    className="h-full bg-blue-500"
+                                    style={{
+                                      width: `${percentage}%` as DimensionValue,
+                                    }}
+                                  />
+                                  <Text className="absolute text-white text-xs w-full text-center top-0">
+                                    {percentage}%
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
                           );
-                        });
-                      })()}
-                    </View>
-                  )}
+                        })}
+
+                        <TouchableOpacity
+                          onPress={() => setShowProgress((prev) => !prev)}
+                          className="mt-2"
+                        >
+                          <Text className="text-blue-500 text-sm">
+                            {showProgress ? "Hide Results" : "Show Results"}
+                          </Text>
+                        </TouchableOpacity>
+                      </>
+                    );
+                  })()}
                 </View>
               )}
             </View>

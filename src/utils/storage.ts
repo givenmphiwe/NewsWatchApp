@@ -34,3 +34,21 @@ export const retrieveProfileImage = async (): Promise<string | null> => {
     return null;
   }
 };
+
+export const storePollVoted = async (pollId: string) => {
+  try {
+    await AsyncStorage.setItem(`poll_voted_${pollId}`, "true");
+  } catch (error) {
+    console.error("Failed to store poll voted status:", error);
+  }
+};
+
+export const retrievePollVoted = async (pollId: string): Promise<boolean> => {
+  try {
+    const value = await AsyncStorage.getItem(`poll_voted_${pollId}`);
+    return value === "true";
+  } catch (error) {
+    console.error("Failed to retrieve poll voted status:", error);
+    return false;
+  }
+};

@@ -38,6 +38,8 @@ const PollScreen = () => {
     );
   };
 
+  type OptionsType = Record<string, number>;
+
   const handlePost = () => {
     if (!question.trim()) {
       alert("Please enter a question");
@@ -52,9 +54,16 @@ const PollScreen = () => {
     const pollsRef = ref(db, "polls");
     const newPollRef = push(pollsRef);
 
+    // Use the OptionsType to define the shape of optionsObj
+    const optionsObj: OptionsType = options.reduce((obj, opt) => {
+      const trimmedText = opt.text.trim();
+      obj[trimmedText] = 0;
+      return obj;
+    }, {} as OptionsType);
+
     const pollData = {
       question: question.trim(),
-      options: options.map((opt) => opt.text.trim()),
+      options: optionsObj,
       createdAt: Date.now(),
     };
 
