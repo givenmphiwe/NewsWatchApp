@@ -132,8 +132,8 @@ const PostScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0} // tweak this number
       style={{ flex: 1 }}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView
@@ -208,6 +208,14 @@ const PostScreen = () => {
               <Picker.Item label="Education" value="Education" />
             </Picker>
           </View>
+
+          <TextInput
+            value={videoLink}
+            onChangeText={(text) => setVideoLink(text)}
+            className="w-full h-10 border border-gray-300 rounded-lg px-3 mt-2 mb-1"
+            placeholder="Add Video Link"
+            placeholderTextColor={theme.text}
+          />
 
           <TextInput
             value={article}
