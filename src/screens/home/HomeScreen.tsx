@@ -31,6 +31,7 @@ import CategoryScreen from "./CategoryScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { retrievePollVoted, storePollVoted } from "../../utils/storage";
 import { formatDate } from "../../utils/formatDate";
+import { WebView } from "react-native-webview";
 
 const HomeScreen = () => {
   const { theme } = useTheme();
@@ -107,7 +108,7 @@ const HomeScreen = () => {
     return Object.entries(data).map(([id, value]: any) => ({
       id,
       ...value,
-      source: "firebase", 
+      source: "firebase",
     }));
   };
   const loadNews = async () => {
@@ -225,6 +226,16 @@ const HomeScreen = () => {
                     resizeMode="cover"
                   />
                 )}
+                {article.videoLink ? (
+                  <View className="w-full h-52">
+                    <WebView
+                      source={{ uri: article.videoLink }}
+                      style={{ flex: 1 }}
+                      javaScriptEnabled={true}
+                      domStorageEnabled={true}
+                    />
+                  </View>
+                ) : null}
                 <View className="p-4">
                   <Text
                     className="text-lg font-bold mb-1"
