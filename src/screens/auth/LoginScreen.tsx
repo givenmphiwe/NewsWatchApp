@@ -79,7 +79,9 @@ const LoginScreen = () => {
         } else if (err.code === "auth/wrong-password") {
           setErrors((prev) => ({ ...prev, password: "Incorrect password" }));
         } else {
-          setFirebaseError("Please check your email and password or create a new account.");
+          setFirebaseError(
+            "Please check your email and password or create a new account."
+          );
         }
       } else {
         setFirebaseError("Unexpected error. Please try again.");
@@ -197,10 +199,10 @@ const LoginScreen = () => {
         </View>
         <SignInButton onPress={handleSignIn} title="Sign In" />
         {firebaseError ? (
-  <Text className="text-red-500 text-xs text-center mt-3">
-    {firebaseError}
-  </Text>
-) : null}
+          <Text className="text-red-500 text-xs text-center mt-3">
+            {firebaseError}
+          </Text>
+        ) : null}
       </View>
 
       <View className="items-center mb-10">
