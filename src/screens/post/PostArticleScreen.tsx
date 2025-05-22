@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   TextInput,
@@ -16,9 +16,11 @@ import * as ImagePicker from "expo-image-picker";
 import { FontAwesome5 } from "@expo/vector-icons";
 import SignInButton from "../../components/SingInButton";
 import { useTheme } from "../../context/ThemeContext";
-import { getDatabase, ref, push, set } from "firebase/database";
+import { getDatabase, ref, push, set, onValue } from "firebase/database";
 import { Picker } from "@react-native-picker/picker";
 import loaderStore from "../../state/LoaderStore";
+import { auth } from "../../../firebaseConfig";
+import { onAuthStateChanged } from "firebase/auth";
 
 const PostScreen = () => {
   const { theme } = useTheme();
@@ -34,6 +36,31 @@ const PostScreen = () => {
     tag: "",
     article: "",
   });
+  const [userData, setUserData] = useState({
+    username: "",
+  });
+
+  useEffect(() => {
+    (async () => {
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const uid = user.uid;
+          const db = getDatabase();
+          const userRef = ref(db, `users/${uid}`);
+          onValue(userRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+              const loadedData = {
+                username: data.username || "",
+              };
+
+              setUserData(loadedData);
+            }
+          });
+        }
+      });
+    })();
+  }, []);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -75,11 +102,14 @@ const PostScreen = () => {
       const sanitizedTag = tag.replace(/#/g, "");
 
       await set(newPostRef, {
-        heading,
+        title: heading,
+        author: userData.username,
         tag: sanitizedTag,
+        Published: "time and date",
         category,
         videoLink,
-        article,
+        description: article.slice(0, 120),
+        content: article,
         image: "Image not uploaded due to cost limitation",
         createdAt: new Date().toISOString(),
       });
