@@ -28,7 +28,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     await AsyncStorage.setItem('theme', newTheme ? 'dark' : 'light');
   };
 
-  const theme = isDarkTheme ? themes.dark : themes.light;
+  const theme = isDarkTheme ? themes.light : themes.dark;
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
