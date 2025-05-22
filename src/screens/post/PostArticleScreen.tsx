@@ -104,13 +104,12 @@ const PostScreen = () => {
         title: heading,
         author: userData.username,
         tag: sanitizedTag,
-        Published: "time and date",
         category,
         videoLink,
         description: article.slice(0, 120),
         content: article,
         image: "Image not uploaded due to cost limitation",
-        createdAt: new Date().toISOString(),
+        publishedAt: new Date().toISOString(),
       });
 
       setSuccessMsg("Post submitted successfully!");

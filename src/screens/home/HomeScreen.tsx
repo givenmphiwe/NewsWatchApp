@@ -23,11 +23,14 @@ import {
   query,
   orderByChild,
   limitToLast,
+  child,
+  get,
 } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import CategoryScreen from "./CategoryScreen";
 import { Ionicons } from "@expo/vector-icons";
 import { retrievePollVoted, storePollVoted } from "../../utils/storage";
+import { formatDate } from "../../utils/formatDate";
 
 const HomeScreen = () => {
   const { theme } = useTheme();
@@ -94,19 +97,39 @@ const HomeScreen = () => {
       console.error("Failed to update vote:", error);
     }
   };
+  const fetchFirebaseNews = async () => {
+    const dbRef = ref(getDatabase());
+    const snapshot = await get(child(dbRef, "News"));
 
+    if (!snapshot.exists()) return [];
+
+    const data = snapshot.val();
+    return Object.entries(data).map(([id, value]: any) => ({
+      id,
+      ...value,
+      source: "firebase", 
+    }));
+  };
   const loadNews = async () => {
     try {
-      const articles = await fetchNews({ query: `${uiStore.categories}` });
-      setNews(articles);
+      const [apiArticles, firebaseArticles] = await Promise.all([
+        fetchNews({ query: uiStore.categories }),
+        fetchFirebaseNews(),
+      ]);
+
+      const combined = [...apiArticles, ...firebaseArticles].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+
+      setNews(combined);
       setError(null);
 
-      const randomIndex = Math.floor(Math.random() * (articles.length - 1)) + 1;
+      const randomIndex = Math.floor(Math.random() * (combined.length - 1)) + 1;
       setPollInsertIndex(randomIndex);
     } catch (err: any) {
       setError(err.message || "Something went wrong");
     } finally {
-     
       setRefreshing(false);
     }
   };
@@ -120,35 +143,34 @@ const HomeScreen = () => {
     loadNews();
   }, [uiStore.categories]);
 
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    if (user) {
-      const uid = user.uid;
-      const db = getDatabase();
-      const userRef = ref(db, `users/${uid}`);
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const uid = user.uid;
+        const db = getDatabase();
+        const userRef = ref(db, `users/${uid}`);
 
-      onValue(userRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          setRole(data.role || "media");
-          // Now that role is set, loading can be released
-          setLoading(false);
-        } else {
-          // Optional: handle the case where user data is missing
-          setError("User data not found");
-          setLoading(false);
-        }
-      });
-    } else {
-      // Handle not authenticated
-      setError("User not authenticated");
-      setLoading(false);
-    }
-  });
+        onValue(userRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            setRole(data.role || "media");
+            // Now that role is set, loading can be released
+            setLoading(false);
+          } else {
+            // Optional: handle the case where user data is missing
+            setError("User data not found");
+            setLoading(false);
+          }
+        });
+      } else {
+        // Handle not authenticated
+        setError("User not authenticated");
+        setLoading(false);
+      }
+    });
 
-  return () => unsubscribe();
-}, [uiStore.categories]);
-
+    return () => unsubscribe();
+  }, [uiStore.categories]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -212,8 +234,7 @@ useEffect(() => {
                   </Text>
                   <View className="flex-row justify-between items-center mb-1">
                     <Text className="text-xs" style={{ color: theme.text }}>
-                      Published:{" "}
-                      {new Date(article.publishedAt).toLocaleDateString()}
+                      Published: {formatDate(article.publishedAt)}
                     </Text>
                   </View>
                   <Text className="mb-4" style={{ color: theme.secondary }}>
