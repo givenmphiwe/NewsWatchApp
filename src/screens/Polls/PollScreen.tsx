@@ -16,6 +16,9 @@ const PollScreen = () => {
     { id: 1, text: "" },
     { id: 2, text: "" },
   ]);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [questionError, setQuestionError] = useState("");
+  const [optionsErrors, setOptionsErrors] = useState<string[]>([]);
 
   const addOption = () => {
     const newOption = {
@@ -26,7 +29,7 @@ const PollScreen = () => {
   };
 
   const removeOption = (id: number) => {
-    if (options.length <= 2) return; // minimum 2 options required
+    if (options.length <= 2) return;
     setOptions((prev) => prev.filter((option) => option.id !== id));
   };
 
@@ -41,23 +44,35 @@ const PollScreen = () => {
   type OptionsType = Record<string, number>;
 
   const handlePost = () => {
+    let hasError = false;
+
     if (!question.trim()) {
-      alert("Please enter a question");
-      return;
-    }
-    if (options.some((opt) => !opt.text.trim())) {
-      alert("Please fill in all options");
-      return;
+      setQuestionError("Question is required");
+      hasError = true;
+    } else {
+      setQuestionError("");
     }
 
+    const newErrors: string[] = options.map((opt) =>
+      !opt.text.trim() ? "This option cannot be empty" : ""
+    );
+
+    if (newErrors.some((err) => err)) {
+      setOptionsErrors(newErrors);
+      hasError = true;
+    } else {
+      setOptionsErrors([]);
+    }
+
+    if (hasError) return;
+
+    // proceed to post
     const db = getDatabase();
     const pollsRef = ref(db, "polls");
     const newPollRef = push(pollsRef);
 
-    // Use the OptionsType to define the shape of optionsObj
     const optionsObj: OptionsType = options.reduce((obj, opt) => {
-      const trimmedText = opt.text.trim();
-      obj[trimmedText] = 0;
+      obj[opt.text.trim()] = 0;
       return obj;
     }, {} as OptionsType);
 
@@ -74,6 +89,8 @@ const PollScreen = () => {
           { id: 1, text: "" },
           { id: 2, text: "" },
         ]);
+        setSuccessMessage("Poll successfully posted!");
+        setTimeout(() => setSuccessMessage(""), 3000);
       })
       .catch((error) => {
         alert("Error posting poll: " + error.message);
@@ -87,36 +104,55 @@ const PollScreen = () => {
           <MaterialCommunityIcons name="menu" size={20} color="black" />
           <TextInput
             placeholder="Enter your question"
-            className="flex-1 mx-3 text-base"
+            className="text-base flex-1 pr-4 text-gray-800 border-b border-gray-300 pb-1"
             placeholderTextColor="#888"
             value={question}
-            onChangeText={setQuestion}
+            onChangeText={(text) => {
+              setQuestion(text);
+              if (text.trim()) setQuestionError("");
+            }}
           />
+
           <MaterialCommunityIcons
             name="dots-vertical"
             size={20}
             color="black"
           />
         </View>
+        {questionError !== "" && (
+          <Text className="text-red-500 ml-3 text-sm">{questionError}</Text>
+        )}
       </View>
 
       <View className="bg-gray-100 rounded-2xl p-4 mb-5">
         {options.map((option, index) => (
-          <View
-            key={option.id}
-            className="flex-row justify-between items-center mb-4"
-          >
-            <TextInput
-              value={option.text}
-              onChangeText={(text) => updateOptionText(option.id, text)}
-              placeholder={`Option ${index + 1}`}
-              className="text-base flex-1 pr-4 text-gray-800 border-b border-gray-300 pb-1"
-              placeholderTextColor="#aaa"
-            />
-            <View className="flex-row items-center space-x-2">
+          <View key={option.id} className="mb-4">
+            <View className="flex-row justify-between items-center">
+              <View className="flex-1">
+                <TextInput
+                  value={option.text}
+                  onChangeText={(text) => {
+                    updateOptionText(option.id, text);
+                    const updatedErrors = [...optionsErrors];
+                    updatedErrors[index] = text.trim()
+                      ? ""
+                      : "This option cannot be empty";
+                    setOptionsErrors(updatedErrors);
+                  }}
+                  placeholder={`Option ${index + 1}`}
+                  className="text-base pr-4 text-gray-800 border-b border-gray-300 pb-1"
+                  placeholderTextColor="#aaa"
+                />
+                {optionsErrors[index] && (
+                  <Text className="text-red-500 text-sm mt-1">
+                    {optionsErrors[index]}
+                  </Text>
+                )}
+              </View>
+
               <TouchableOpacity
                 onPress={() => removeOption(option.id)}
-                className="w-8 h-8 rounded-full bg-white border items-center justify-center"
+                className="w-8 h-8 ml-2 rounded-full bg-white border items-center justify-center"
               >
                 <MaterialCommunityIcons name="close" size={18} color="#000" />
               </TouchableOpacity>
@@ -134,6 +170,12 @@ const PollScreen = () => {
       </View>
 
       <SignInButton onPress={handlePost} title="Post" />
+
+      {successMessage !== "" && (
+        <Text className="text-green-600 mt-3 text-base font-medium">
+          {successMessage}
+        </Text>
+      )}
     </ScrollView>
   );
 };
